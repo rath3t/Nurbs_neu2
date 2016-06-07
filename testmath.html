@@ -1,0 +1,130 @@
+<html>
+<head>
+    <script src="math.js"></script>
+    <style> body {  margin: 0; } </style>
+</head>
+<body>
+<script>
+
+var vec1 = new Vector2d (2,1,0);
+var vec2 = new Vector2d (5,3,0);
+var vec3 = new Vector2d (4,-3,0);
+var vec4 = new Vector2d (3,2,0);
+var vec5 = new Vector2d (17,27,0);
+var vec6 = new Vector2d(9,6,0);
+var matrix = new Matrix2x2(3,2,13,4);
+var matrix1 = new Matrix2x2(5,1,7,6);
+var matrix2 = new Matrix2x2(3,1,7,3);
+var error_count=0;
+var error_count_vec = 0;
+console.log("--------------------------------------------------------")
+console.log("-------------------Test Vector functions----------------")
+console.log("--------------------------------------------------------")
+var res1 = vec1.add(vec2);
+if(!(res1.compare_exact(new Vector2d(7,4,0)))) {error_count++; error_count_vec++; throw new Error('Vector addition error')}
+console.log("Vector addition: 	 	 should       [7,4,0] is :", res1);
+
+var res2 = vec1.sub(vec2);
+if(!(res2.compare_exact(new Vector2d(-3,-2,0)))) {error_count++; error_count_vec++; throw new Error('Vector substraction error')}
+console.log("Vector substraction:     should     [-3,-2,0] is :", res2);
+
+var res3 = vec1.norm();
+if(Math.abs(res3-2.236)>1e-4) {error_count++; error_count_vec++; throw new Error('Vector euclidian norm error')}
+console.log("Vector norm:             should      2.236... is :", res3);
+
+var res4 = vec3.normalise();
+if(!(res4.compare_exact(new Vector2d(0.8,-0.6,0)))) {error_count++; error_count_vec++; throw new Error('Vector normalise error')}
+console.log("Normalised Vector:       should  [0.8,-0.6,0] is :", res4);
+
+var res5 = vec1.dotProd(vec2);
+if(Math.abs(res5-13)>1e-4) {error_count++; throw new Error('Vector dot error')}
+console.log("Scalarproduct:           should            13 is :", res5);
+
+var res6 = vec2.multi_scalar(4);
+if(!(res6.compare_exact(new Vector2d(20,12,0)))) {error_count++; error_count_vec++; throw new Error('Vector scalar multiplication error')}
+console.log("Scalar multiply:         should     [20,12,0] is :", res6);
+
+var res7 = vec4.rotate(13,vec5);
+if(!(res7.compare_exact(new Vector2d(14.799920980363277,-1.5685080518278767,0)))) {error_count++; error_count_vec++; throw new Error('Vector rotation error')}
+console.log("Rotate Vector:           should      [14.799,-1.5685,0] is :", res7);
+
+var res8 = res7.inv_rotate(13,vec5);
+if(!(res8.compare_exact(new Vector2d(3,2,0)))) {error_count++; error_count_vec++; throw new Error('Vector inverse rotation error')}
+console.log("Inv_Rotate :             should       [3,2,0] is :", res8);
+
+var res9 = vec3.normal_vec();
+if(!(res9.compare_exact(new Vector2d(3,4,0)))) {error_count++; error_count_vec++; throw new Error('Vector normal vector error')}
+console.log("Normal_vec :             should       [3,4,0] is :", res9);
+
+var res10 = vec3.compare_exact(vec3);
+if(res10==false) {error_count++; error_count_vec++; throw new Error('Vector exact comparison error')}
+console.log("Compare_vectors_exact:   should          true is :", res10);
+
+var res11 = vec3.compare_exact(vec4);
+if(res11==true) {error_count++; error_count_vec++; throw new Error('Vector exact comparison error')}
+console.log("Compare_vectors_exact:   should         false is :", res11);
+
+var res12 = vec4.compare_direction(vec6);
+if(res12==false) {error_count++; error_count_vec++; throw new Error('Vector direction comparison error')}
+console.log("Compare_vec_direction:   should          true is :", res12);
+
+console.log("--------------------------------------------------------")
+console.log("--------"+ error_count_vec +" errors found in Vector calculations-----------")
+console.log("--------------------------------------------------------")
+console.log("-------------------Test Matrix functions----------------")
+console.log("--------------------------------------------------------")
+
+var error_count_matrix = 0;
+
+var res13 = matrix.det();
+if (Math.abs(res13+14)>1e-10){error_count++; error_count_matrix++; throw new Error('Matrix determinant error')}
+console.log("Matrix Determinant:      should           -14 is :", res13);
+
+var res14 = matrix.multi_scalar(3);
+var exa = new Matrix2x2(9,6,39,12)
+if (!res14.compare(exa)){error_count++; error_count_matrix++; throw new Error('Matrix scalarmultiply error')}
+console.log("Scalarmultiply:          should   [9,39,6,12] is :", res14);
+
+var res15 = matrix.multi_vec(vec1);
+var exa2 = new Vector2d(8,30,0);
+if (!res15.compare_exact(exa2)){error_count++; error_count_matrix++;  throw new Error('Matrix compare error')}
+console.log("Matrix*vector:           should      [8,30,0] is :", res15);
+
+var res16 = matrix.multi_matrix(matrix1);
+var exa3 = new Matrix2x2(29,15,93,37)
+if (!res16.compare(exa3)){error_count++; error_count_matrix++; throw new Error('Matrix multiplication error')} //throw new Error('Des und des isch falsch')
+console.log("Matrix*Matrix:           should [29,93,15,37] is :", res16);
+
+var res17 = matrix2.inv();
+var exa4 = new Matrix2x2(1.5,-0.5,-3.5,1.5)
+if (!res17.compare(exa4)){error_count++; error_count_matrix++; throw new Error('Matrix inverse error')}
+console.log("Matrix Inverse:    should [1.5,-3.5,-0.5,1.5] is :", res17);
+
+console.log("--------------------------------------------------------")
+console.log("--------"+ error_count_matrix +" errors found in Matrix calculations-----------")
+console.log("--------------------------------------------------------")
+console.log("--------------------------------------------------------")
+console.log("-------------------Test Misc----------------------------")
+console.log("--------------------------------------------------------")
+
+var error_count_misc = 0;
+var normal_v = new Vector2d(-1,-1,0);
+var pos 	 = new Vector2d(1,0,0);
+var dis 	 = new Vector2d(0,0,0)
+var line 	 = new Line2d(normal_v,pos);
+var res18 = line.distance_point(dis);
+if (Math.abs(res18-0.7071067811865475)>1e-10){error_count++; error_count_misc++; throw new Error('Line2d distance_point error')}
+
+console.log("Distance vec vs. point:  should    0.70710678 is :", res18);
+console.log("--------------------------------------------------------")
+console.log("--------"+ error_count_misc +" errors found in Misc calculations-----------")
+console.log("--------------------------------------------------------")
+console.log("---------------"+ error_count +" errors found in Math.js----------------")
+//console.log();
+//console.log(rotate_vec_inv(Math.PI/2,res));
+
+</script>
+
+</body>  
+
+</html>

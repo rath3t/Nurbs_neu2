@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="verb.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src="js/verbToThreeConversion.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/threeBasic.js"></script>
+
+    <script src="utilities/math.js"></script>
+    <script src="utilities/physics.js"></script>
+    <script src="utilities/misc.js"></script>
+    <style> body {  margin: 0; } </style>
+</head>
+<body>
+<script>
+	threeSetup();
+
+    var gravity = -9.81;
+    var e = 1;
+    var origin_vec = new Vector2d(0,0,0);
+
+
+    // var transformation = function(angle,vector){
+    //     var transformationmatrix = [Math.cos(angle), Math.sin(angle), -Math.sin(angle),Math.cos(angle)];
+    //     var vector_new = [transformationmatrix[0]*vector[0]+transformationmatrix[1]*vector[1],transformationmatrix[2]*vector[0]+transformationmatrix[3]*vector[1],vector[2]];
+    //     return vector_new;
+    // }
+    // var inv_transformation = function(angle,vector){
+    //     var inv_transformationmatrix = [Math.cos(angle), -Math.sin(angle), Math.sin(angle),Math.cos(angle)];
+    //     var vector_new = [-inv_transformationmatrix[0]*vector[0]-inv_transformationmatrix[1]*vector[1],-inv_transformationmatrix[2]*vector[0]-inv_transformationmatrix[3]*vector[1],vector[2]];
+    //     return vector_new;
+    // }
+
+     var transformation_x_y = function(angle,vector,x,y){
+         var vector_new = [x+Math.cos(angle)*(vector[0]-x)-Math.sin(angle)*(vector[1]-y),y+Math.sin(angle)*(vector[0]-x)+Math.cos(angle)*(vector[1]-y),vector[2]];
+         return vector_new;
+    }
+
+    //general Nurbs Circle 
+    var knotvec_circ = [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1];
+    var ptsweights_circ = [1, 0.70710678118, 1, 0.70710678118, 1, 0.70710678118,1,0.70710678118,1];
+
+    //generate obstacle
+    
+    var p1a = [-5,-1,0], p2a = [0,5,0], p3a = [5,5,0], p4a = [10,-1,0], p5a = [-5, -1, 0];
+    var ptsa = [p1a, p2a, p3a, p4a, p5a];
+
+    var curve1 = verb.geom.NurbsCurve.byPoints( ptsa, 3 );
+    var curve1_data =new verb.core.NurbsCurveData( curve1.degree, curve1.knots, curve1.controlPoints, curve1.weights );
+    addCurveToScene( curve1.toThreeGeometry() );
+
+    var init = function() {
+       scene.remove(scene.children[5]);
+      scene.remove(scene.children[7]);
+       scene.remove(scene.children[8]);
+       scene.remove(scene.children[9]);
+    //renderer.deallocateObject( obj );
+        //test distance between ball and obstacle
+        var center= new Vector2d(ball1.x+ball1.axis_x,ball1.y+ball1.axis_y,0);
+         addPointsToScene([center.x1,center.x2]);
+        var closestPoint = curve1.closestPoint([center.x1,center.x2,0])
+        var distance = ball1.calcDistance(closestPoint,center);
+        var ball1_curve_anal = ball1.generatecurve();
+        var ball1_data = new verb.core.NurbsCurveData(2, knotvec_circ, ball1.generatecpts(), ptsweights_circ);
+        var intersect = ball1.calcCollision(curve1,ball1.generatecurve());
+
+         var material_line1 = new THREE.LineBasicMaterial({color: 0xffffff});
+                var geometry_line1 = new THREE.Geometry();
+                geometry_line1.vertices.push(
+                    new THREE.Vector3(center[0],center[1],0),
+                    new THREE.Vector3(center[0]-ball1.speed.x1,center[1]-ball1.speed.x2,0)
+                    //new THREE.Vector3( 10, 0, 0 )
+                ); 
+
+                var line1 = new THREE.Line( geometry_line1, material_line1 );
+                scene.add( line1 );
+        if(intersect!=[]){
+            ball1.calcCollisionConsequences(ball1_curve_anal,intersect);
+        }    
+    };  
+     
+    // var Ball = function(x, y, mass, radius, speed) {
+    //     return {
+    //         x: x, //lower left corner x
+    //         y: y, //lower left corner y
+    //         mass: mass,
+    //         radius: radius, 
+    //         speed: speed, 
+    //         _create_draw_obj: function( ) {
+    //             var ball_curve_analytic = this.generatecurve();
+    //             var ball_curve_three    = ball_curve_analytic.toThreeGeometry();
+    //             ball_curve_three.material = THREE.LineBasicMaterial({ linewidth: 2, color: 0xFFFFFF});
+    //             var ball_plot = new THREE.Line(ball_curve_three );
+    //             return ball_plot;
+    //            // addCurveToScene( ball_curve_three );
+    //         },
+    //         _draw: function( ) {
+    //             scene.add(this._create_draw_obj());
+    //            // addCurveToScene( ball_curve_three );
+    //         },
+    //         //remove doesn't work
+    //         //_remove: function(geom, material) {
+    //         //  material = material || new THREE.LineBasicMaterial({ linewidth: 2, color: 0x000000});
+    //         //  var del_obj = new THREE.Line( geom, material )
+    //         //  scene.remove( del_obj );
+    //         //},
+    //         generatecpts: function() {
+    //             var p1b= [this.x,                this.y+this.radius,     0];
+    //             var p2b= [this.x,                this.y,                 0]; 
+    //             var p3b= [this.x+this.radius,    this.y,                 0]; 
+    //             var p4b= [this.x+2*this.radius,  this.y,                 0]; 
+    //             var p5b= [this.x+2*this.radius,  this.y+this.radius,     0]; 
+    //             var p6b= [this.x+2*this.radius,  this.y+2*this.radius,   0]; 
+    //             var p7b= [this.x+this.radius,    this.y+2*this.radius,   0];
+    //             var p8b= [this.x,                this.y+2*this.radius,   0];
+
+    //             var ptsb= [p1b,p2b, p3b,p4b, p5b,p6b,p7b,p8b,p1b];
+
+    //             return ptsb;
+    //         },
+    //         generatecurve: function() {
+    //             return verb.geom.NurbsCurve.byKnotsControlPointsWeights(2, knotvec_circ,this.generatecpts() ,ptsweights_circ );
+    //         },
+    //         gravity: function() {
+    //             this.speed[1] = this.speed[1] + gravity*tick;
+    //             this.x=this.x+this.speed[0]*tick
+    //             this.y =this.y+0.5*gravity*Math.pow(tick,2)+this.speed[1]*tick;
+    //         },
+    //         calcDistance: function(closest_point,center) {
+    //             return Math.sqrt(Math.pow((closest_point[0] - center.x1), 2) + Math.pow((closest_point[1] - center.x2), 2));
+    //         },
+    //         //gravity maybe leads to collision between ball and curve
+    //         calcCollision: function(distance) {
+    //             var tolerance =4*this.radius*tick;
+    //             if(distance <= this.radius+tolerance) {
+    //                 return true;
+    //             } else {
+    //                 return false;
+    //             }
+    //         },
+    //         calcCollisionConsequences: function(ball_curve_analytic,closest_point) {
+    //             var param = ball_curve_analytic.closestParam(closest_point);
+    //             var coll_tangent = ball_curve_analytic.tangent(param);
+    //             if(coll_tangent[1]<0 && !(coll_tangent[1]<0)){
+    //                 var normal_tang = [coll_tangent[1]/coll_tangent[0],1]; 
+    //             }else if(coll_tangent[0]<0){
+    //                 var normal_tang = [coll_tangent[1]/coll_tangent[0],-1]; 
+    //             }else{
+    //                 var normal_tang = [-coll_tangent[1]/coll_tangent[0],1]; 
+    //             }
+    //             var norm =Math.sqrt(Math.pow(normal_tang[0],2)+Math.pow(normal_tang[1],2));
+    //             var normalised_normal_tang =[normal_tang[0]/norm,normal_tang[1]/norm];
+    //             var correction = 0.01;
+                
+                
+    //             //Collision angle:
+    //             var angle_coll = Math.atan(coll_tangent[1]/coll_tangent[0]);
+               
+                
+    //             //addPointsToScene(normal_tang);
+    //             //addPointsToScene(closest_point);
+
+    //             var material_line = new THREE.LineBasicMaterial({color: 0xffffff});
+    //             var geometry_line = new THREE.Geometry();
+    //             geometry_line.vertices.push(
+    //                 new THREE.Vector3(closest_point[0],closest_point[1],closest_point[2]),
+    //                 new THREE.Vector3(closest_point[0]-normalised_normal_tang[0],closest_point[1]-normalised_normal_tang[1],closest_point[2]-normalised_normal_tang[2])
+    //                 //new THREE.Vector3( 10, 0, 0 )
+    //             );
+
+    //             var line = new THREE.Line( geometry_line, material_line );
+    //             scene.add( line );
+
+    //             console.log(coll_tangent ,normalised_normal_tang);
+    //             //if (Math.abs(2*Math.angle_coll)<0.1){
+    //             //    return;
+    //             //}
+    //             //convert speeds in local,normalised directions
+
+    //             //var trans_speed = transformation(angle_coll,this.speed);
+    //             //var center  = new Vector2d(center[0],center[1],center[2]);
+
+    //             var trans_speed = this.speed.rotate(angle_coll,center) ;
+
+
+    //             //calculate new speeds due to collision
+    //             var trans_speed_new= [0,0];
+
+    //             trans_speed_new[0] = trans_speed[0]-trans_speed[0]*(1+e);
+    //             trans_speed_new[1] = trans_speed[1];
+                
+    //             //convert speeds back to global directions
+    //             //this.speed = inv_transformation(angle_coll,trans_speed_new);
+    //             this.speed= trans_speed_new.inv_rotate(angle_coll,center);
+                
+    //             this.x  = this.x+correction*normalised_normal_tang[0];
+    //             this.y  = this.y+correction*normalised_normal_tang[1];
+
+    //         }
+    //     };
+    // }
+
+    var Ellipse = function(x, y, mass, axis_x,axis_y, speed,orient_angle) {
+        return {
+            x: x, //lower left corner x
+            y: y, //lower left corner y
+            //pos = new Vector2d(x,y,0),
+            mass: mass,
+            axis_x: axis_x,
+            axis_y: axis_y, 
+            speed: speed, 
+            orient_angle: orient_angle,
+            _create_draw_obj: function( ) {
+                var ball_curve_analytic = this.generatecurve();
+                var ball_curve_three    = ball_curve_analytic.toThreeGeometry();
+                ball_curve_three.material = new THREE.LineBasicMaterial({ linewidth: 2, color: 0xFFFFFF});
+                var ball_plot = new THREE.Line(ball_curve_three );
+                return ball_plot;
+               // addCurveToScene( ball_curve_three );
+            },
+            _draw: function( ) {
+                scene.add(this._create_draw_obj());
+               // addCurveToScene( ball_curve_three );
+            },
+            //remove doesn't work
+            //_remove: function(geom, material) {
+            //  material = material || new THREE.LineBasicMaterial({ linewidth: 2, color: 0x000000});
+            //  var del_obj = new THREE.Line( geom, material )
+            //  scene.remove( del_obj );
+            //},
+            generatecpts: function() {
+                var p1b= transformation_x_y(this.orient_angle,[this.x,                     this.y+  this.axis_y,   0],this.x+this.axis_x,this.y+this.axis_y);
+                var p2b= transformation_x_y(this.orient_angle,[this.x,                     this.y,                 0],this.x+this.axis_x,this.y+this.axis_y); 
+                var p3b= transformation_x_y(this.orient_angle,[this.x+this.axis_x,         this.y,                 0],this.x+this.axis_x,this.y+this.axis_y); 
+                var p4b= transformation_x_y(this.orient_angle,[this.x+2*this.axis_x,       this.y,                 0],this.x+this.axis_x,this.y+this.axis_y); 
+                var p5b= transformation_x_y(this.orient_angle,[this.x+2*this.axis_x,       this.y+  this.axis_y,   0],this.x+this.axis_x,this.y+this.axis_y); 
+                var p6b= transformation_x_y(this.orient_angle,[this.x+2*this.axis_x,       this.y+2*this.axis_y,   0],this.x+this.axis_x,this.y+this.axis_y); 
+                var p7b= transformation_x_y(this.orient_angle,[this.x+this.axis_x,         this.y+2*this.axis_y,   0],this.x+this.axis_x,this.y+this.axis_y);
+                var p8b= transformation_x_y(this.orient_angle,[this.x,                     this.y+2*this.axis_y,   0],this.x+this.axis_x,this.y+this.axis_y);
+
+                var ptsb= [p1b,p2b, p3b,p4b, p5b,p6b,p7b,p8b,p1b];
+
+                return ptsb;
+            },
+            generatecurve: function() {
+                return verb.geom.NurbsCurve.byKnotsControlPointsWeights(2, knotvec_circ,this.generatecpts() ,ptsweights_circ );
+            },
+            gravity: function() {
+                this.speed.x2 = this.speed.x2 + gravity*tick;
+                this.x=this.x+this.speed.x1*tick
+                this.y =this.y+0.5*gravity*Math.pow(0.5*tick,2)+this.speed.x2*tick;
+            },
+            rotate: function() {
+                this.orient_angle=this.orient_angle+this.speed.x3*tick;
+            },
+            calcDistance: function(closest_point,center) {
+                return Math.sqrt(Math.pow((closest_point[0] - center.x1), 2) + Math.pow((closest_point[1] - center.x2), 2));
+            },
+            //gravity maybe leads to collision between ball and curve
+            calcCollision: function(curve1,curve2) { 
+                var intersect = verb.geom.Intersect.curves( curve1, curve2, 1e-20 );
+
+                if(intersect==0) {
+                    return false;
+                } else {
+                    //console.log();
+                    if(intersect.length>=2){
+                        addPointsToScene([intersect[0].point0]);
+                         addPointsToScene([intersect[1].point0]);
+                        console.log("Intersect: ",intersect[0].point0 );
+                        return [(intersect[0].point0[0]+intersect[1].point0[0])/2, (intersect[0].point0[1]+intersect[1].point0[1])/2,0];
+                    }else{
+                        return [intersect[0].point0[0], intersect[0].point0[1],0];
+                    }
+                }
+                
+            },
+            calcCollisionConsequences: function(ball_curve_analytic,intersect) {
+
+                var param = curve1.closestParam(intersect);
+                console.log("Beruehrungspunkt:",intersect);
+                console.log("Beruehrungspunktgeschw.:",this.speed);
+                var coll_tangent = curve1.tangent(param);
+                coll_tangent[0] = -coll_tangent[0];
+                coll_tangent[1] = -coll_tangent[1];
+                if(coll_tangent[1]<0 && coll_tangent[0]>0){
+                    console.log("1")
+                    var normal_tang = [-coll_tangent[1]/coll_tangent[0],1]; 
+                }else if(coll_tangent[0]<0){
+                    console.log("2")
+                    var normal_tang = [coll_tangent[1]/coll_tangent[0],-1]; 
+                }else if(coll_tangent[0]>0 && coll_tangent[1]>0){
+                    console.log("3")
+                    var normal_tang = [-coll_tangent[1]/coll_tangent[0],1]; 
+                }else{
+                   console.log("4")
+                    var normal_tang = [-coll_tangent[1]/coll_tangent[0],1]; 
+                }
+                var norm =Math.sqrt(Math.pow(normal_tang[0],2)+Math.pow(normal_tang[1],2));
+                var normalised_normal_tang =[normal_tang[0]/norm,normal_tang[1]/norm];
+                var correction = 0.1;
+                 
+                
+                //Collision angle:
+                var angle_coll = Math.atan(coll_tangent[1]/coll_tangent[0]);
+               
+                
+                //addPointsToScene(normal_tang);
+                //addPointsToScene(closest_point);
+
+                var material_line = new THREE.LineBasicMaterial({color: 0xffffff});
+                var geometry_line = new THREE.Geometry();
+                geometry_line.vertices.push(
+                    new THREE.Vector3(intersect[0],intersect[1],intersect[2]),
+                    new THREE.Vector3(intersect[0]-normalised_normal_tang[0],intersect[1]-normalised_normal_tang[1],intersect[2]-normalised_normal_tang[2])
+                    //new THREE.Vector3( 10, 0, 0 )
+                ); 
+
+                var line = new THREE.Line( geometry_line, material_line );
+                scene.add( line );
+
+                console.log("Tangente:",coll_tangent ,"Normale:",normalised_normal_tang);
+                //if (Math.abs(2*Math.angle_coll)<0.1){
+                //    return;
+                //}
+                //convert speeds in local,normalised directionsx
+                //var trans_speed = transformation(angle_coll,this.speed);
+                //console.log("Center: ", center);
+                 var center1 = transformation_x_y(this.orient_angle,[this.x+this.axis_x,this.y+this.axis_y,     0],this.x+this.axis_x,this.y+this.axis_y);
+                center = new Vector2d(center1[0],center1[1],0);
+
+                var trans_speed = this.speed.rotate(angle_coll,origin_vec);
+
+                //calculate new speeds due to collision
+                var s =(e+1)*this.mass*trans_speed.x1;
+                var trans_speed_new= new Vector2d(0,0,0);
+                //calculate mass inertia of an ellipse = m*(a^2+b^2)/5
+                var massInertia = this.mass*(Math.pow(this.axis_x,2)+Math.pow(this.axis_y,2))/5; 
+                console.log("MassInertia:", massInertia);
+                //calculate signed distance between normal vector and center of mass
+                console.log("Center: ", center);
+               
+
+                //plot center :
+
+                
+                
+                console.log("Center: ", center);
+                                console.log("S: ", s);
+
+
+                var x_dis =(coll_tangent[0]*(center.x1-intersect[0])+coll_tangent[1]*(center.x2-intersect[1]))/Math.sqrt(Math.pow(coll_tangent[0],2)+Math.pow(coll_tangent[1],2));
+                console.log("x_Abstand: ",x_dis,"Center:", center);
+                trans_speed_new.x1 = trans_speed.x1-s/this.mass;
+                trans_speed_new.x2 = trans_speed.x2;
+                //if(coll_tangent[0]>0 && coll_tangent[1]>0){
+                 //   trans_speed_new[2] = this.speed[2]-s*x_dis/massInertia;
+                //}else if(coll_tangent[0]<0 && coll_tangent[1]<0){
+                    //trans_speed_new[2] = this.speed[2]-s*x_dis/massInertia;
+                //}
+                console.log("Ungedrehte geschw.: ", trans_speed_new);
+                //convert speeds back to global directions
+                this.speed= trans_speed_new.inv_rotate(angle_coll,origin_vec);
+
+                console.log("Geschwindigkeitsvektor: ", this.speed);
+                this.x  = this.x+correction*normalised_normal_tang[0];
+                this.y  = this.y+correction*normalised_normal_tang[1];
+
+            }
+        };
+    }
+    //var ball1 = new Ball(4,6,10,1,[0,0]);
+    var ball1_speed = new Vector2d(0,0,0);
+    var ball1 = new Ellipse(2,0,100,1,1,ball1_speed,0);
+    function timestamp() {
+        return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
+    };
+    
+    var now, tick, last = timestamp();
+
+    var update = function() {
+        ball1.gravity();
+        ball1.rotate();
+    };
+
+    var render_ball = function() {
+        ball1._draw();
+    };
+
+    var accumulator = 0
+ 
+    function frame() {
+        
+       // tick    = 1/10;
+        
+
+        threeRender();
+        };
+var now =0;
+var last =0;
+tick=1/200;
+    function threeRender(){
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+        function render() {
+            now  = timestamp();
+
+            
+
+            init(); 
+            update();
+            render_ball();
+
+            //ball1._remove(ball1._create_draw_obj());
+            
+            requestAnimationFrame( render );
+            renderer.render( scene, camera );
+            last  = timestamp();
+        }
+    render();
+    }
+        
+    frame();
+
+    //buggy
+    //function removeCurveFromScene_here(geom, material){
+    //    material = material || new THREE.LineBasicMaterial({ linewidth: 2, color: 0x000FFF});
+    //    var del_obj = new THREE.Line( geom, material )
+    //    scene.remove( del_obj );
+    //}
+	
+</script>
+
+</body>  
+
+</html>

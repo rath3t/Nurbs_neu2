@@ -1,0 +1,105 @@
+<html>
+<head>
+    <script src="utilities/math.js"></script>
+    <script src="verb.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src="js/verbToThreeConversion.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/threeBasic.js"></script>
+
+    <script src="utilities/physics.js"></script>
+    <script src="utilities/misc.js"></script>
+    <script src="utilities/plot.js"></script>
+    <style> body {  margin: 0; } </style>
+</head>
+<body>
+<script>
+//var wurst = new Vector2d(2,1,0);
+//var ball = Object.create( phys_obj(wurst) );
+var init = function() {
+	update_phys_objs(phys_objs);
+	collision_handler.init(phys_objs);
+}
+
+var gravity = new Gravity();
+var collision_handler = new CollisionHandler();
+//defineProp(ball,"radius", 2);
+var tick	= 0.0050000; //testing
+var pos = new Vector2d(2,3,0);
+//var pos2 = new Vector2d(4,5,0);
+//var pos3 = new Vector2d(0,6,0); 
+var speed = new Vector2d(-1,0,1);
+var acc = new Vector2d(0,0,1);
+//var acc2 = new Vector2d(1,1,1);
+
+var phys_objs = [];
+var mat = new Material(0.5,0);
+var circle = new Circle(2,pos,10,mat);
+//var circle2 = new Circle(1,pos3,10,mat);
+
+ var p1a = [-10,0,0], p2a = [0,0,0], p3a = [10,0,0];
+    var ptsa = [p1a, p2a, p3a];
+
+threeSetup();
+var floor = new Environment(1,ptsa,[0,0,0.5,1,1],[1,1,1]);
+
+circle._draw();
+threeRender();
+circle.speed = speed;
+circle.acc =acc;
+
+phys_objs.push(circle);
+//phys_objs.push(circle2);
+
+//var ellipse = new Ellipse(2,1,pos2,10,mat)
+//ellipse.speed = speed;
+//ellipse.acc =acc2;
+
+//phys_objs.push(ellipse);
+phys_objs.push(floor);
+
+gravity.on(phys_objs,-10); //turn gravity on !
+
+
+init();
+frame();
+//var t = circle instanceof Circle;
+
+//var s = circle instanceof Phys_obj;
+//console.log(s,t,circle.pos,circle2.pos);
+
+//circle.rotate();
+// var error_count = 0;
+// console.log("--------------------------------------------------------")
+// console.log("-------------------Test Physic functions----------------")
+// console.log("--------------------------------------------------------")
+
+// if(!circle.pos.compare_exact(pos) || t == false || s == false){error_count++; throw new Error('Circle inheritance error')};
+// console.log("Test circle inheritance:        should   true, true,[2,3,0] is :", t,s,circle.pos.x1,circle.pos.x2,circle.pos.x3);
+
+// circle.move();
+// if(!circle.pos.compare_exact(new Vector2d(2.625,3.875,0.625))){error_count++; throw new Error('Circle movement error')};
+// console.log("Test Circle movement:           should       [2.625,3.875,0.625] is :", circle.pos.x1,circle.pos.x2,circle.pos.x3);
+
+// gravity.on(phys_objs,-10); //turn gravity on !
+// console.log("------------Gravity acceleration is: " ,gravity.acc, "--------------");
+// //update_phys_objs(phys_objs);
+// if(!circle.pos.compare_exact(new Vector2d(3.5,4.25,1.5))){error_count++; throw new Error('Circle gravity/movement error')};
+// console.log("Test Gravity:           should       [3.5,4.25,1.5] is :", circle.pos.x1,circle.pos.x2,circle.pos.x3);
+// update_phys_objs(phys_objs);
+// //collision_handler.init(phys_objs);
+// //console.log("Test Collision circle vs. env.:           should       [3.5,4.25,1.5] is :", circle.pos.x1,circle.pos.x2,circle.pos.x3);
+
+// console.log("--------------------------------------------------------")
+// console.log("---------------"+ error_count +" errors found in physics.js-------------")
+// console.log("--------------------------------------------------------")
+
+
+//Testing functions:
+
+
+</script>
+
+</body>  
+
+</html>
