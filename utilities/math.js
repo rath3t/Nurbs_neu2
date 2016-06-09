@@ -7,8 +7,7 @@ var rotationmatrix =function(angle){
 var inv_rotationmatrix =function(angle){ 
 	return new Matrix2x2(Math.cos(angle), Math.sin(angle), -Math.sin(angle),Math.cos(angle));
 }
-
-var TOLERANCE = 1e-5;
+var TOLERANCE = 1e-10;
 //Matrix function arguments are ordered row-wise
 //arguments are always
 //t      = Scalar
@@ -21,28 +20,39 @@ var TOLERANCE = 1e-5;
 //  (x2 y2)
 
 //linear Algebra:
-
 var Vector2d = function(x1,x2,x3){
 	this.x1 = x1;
 	this.x2 = x2;
 	this.x3 = x3;
 	this.add = function(vector){
+		return new Vector2d(this.x1+vector.x1,this.x2+vector.x2,this.x3);
+	}
+	this.addAll = function(vector){
 		return new Vector2d(this.x1+vector.x1,this.x2+vector.x2,this.x3+vector.x3);
 	}
 	this.sub = function(vector){
 		return new Vector2d(this.x1-vector.x1,this.x2-vector.x2,this.x3);
 	}
+	this.subAll = function(vector){
+		return new Vector2d(this.x1-vector.x1,this.x2-vector.x2,this.x3-vector.x3);
+	}
 	this.norm = function(){
 		return Math.sqrt(Math.pow(this.x1,2)+Math.pow(this.x2,2));
+	}
+	this.normAll = function(){
+		return Math.sqrt(Math.pow(this.x1,2)+Math.pow(this.x2,2)+Math.pow(this.x3,2));
 	}
 	this.normalise = function(){
 		var norm = this.norm();
 		return new Vector2d(this.x1/norm,this.x2/norm,this.x3);
 	}
 	this.dotProd = function(vector) {
-		return this.x1*vector.x1+this.x2*vector.x2+this.x3*vector.x3;
+		return this.x1*vector.x1+this.x2*vector.x2;
 	}
 	this.multi_scalar = function(t) {
+		return new Vector2d(this.x1*t,this.x2*t,this.x3);
+	}
+	this.multi_scalarAll = function(t) {
 		return new Vector2d(this.x1*t,this.x2*t,this.x3*t);
 	}
 	this.rotate = function(angle,origin){ //rotations are always counter-clockwise 
@@ -73,7 +83,6 @@ var Vector2d = function(x1,x2,x3){
 		}
 	}
 }
-
 
 var Matrix2x2 =function(x1,y1,x2,y2){ 
 	this.x1 = x1;
@@ -108,13 +117,11 @@ var Matrix2x2 =function(x1,y1,x2,y2){
 	}
 }
 
-
 var Line2d = function(normal_v,pos_vec){
 	this.normal_v = normal_v;
 	this.pos_vec = pos_vec;
-	this.distance_point = function(pt){ //distance between line and point with hesse normal form
+	this.distance_point = function(pt){ //distance between line and point with hessian normal form
 		
 		return normal_v.normalise().dotProd(pt.sub(pos_vec));
 	}
 }
-

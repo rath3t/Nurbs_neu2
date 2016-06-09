@@ -13,49 +13,45 @@
     <style> body {  margin: 0; } </style>
 </head>
 <body>
-<script>
-//var wurst = new Vector2d(2,1,0);
-//var ball = Object.create( phys_obj(wurst) );
+    <script>
+
 var init = function() {
+    collision_handler.init(phys_objs);
 	update_phys_objs(phys_objs);
-	collision_handler.init(phys_objs);
+    time_overall=time_overall+tick
 }
 
 var gravity = new Gravity();
 var collision_handler = new CollisionHandler();
-//defineProp(ball,"radius", 2);
 var tick	= 0.0050000; //testing
-var pos = new Vector2d(2,3,0);
-//var pos2 = new Vector2d(4,5,0);
-//var pos3 = new Vector2d(0,6,0); 
-var speed = new Vector2d(-1,0,1);
-var acc = new Vector2d(0,0,1);
-//var acc2 = new Vector2d(1,1,1);
+var time_overall = 0
+
+var pos = new Vector2d(1,3,2);
+var pos2 = new Vector2d(-3,3,3);
+var speed = new Vector2d(0,0,0);
+var acc = new Vector2d(0,0,0);
+
 
 var phys_objs = [];
-var mat = new Material(0.5,0);
-var circle = new Circle(2,pos,10,mat);
-//var circle2 = new Circle(1,pos3,10,mat);
-
- var p1a = [-10,0,0], p2a = [0,0,0], p3a = [10,0,0];
-    var ptsa = [p1a, p2a, p3a];
-
-threeSetup();
-var floor = new Environment(1,ptsa,[0,0,0.5,1,1],[1,1,1]);
-
-circle._draw();
-threeRender();
+var mass = 10;
+var mat = new Material(0.9,0);
+var circle = new Circle(2,pos2,10,mat,1);
+var ellipse = new Ellipse(2,1,pos,mass,mat,2)
+ellipse.speed = speed;
+ellipse.acc =acc;
 circle.speed = speed;
 circle.acc =acc;
+var p1a = [-10,0,0], p2a = [0,0,0], p3a = [10,0,0];
+var ptsa = [p1a, p2a, p3a];
 
+threeSetup();
+var floor = new Environment(1,ptsa,[0,0,0.5,1,1],[1,1,1],0);
+
+threeRender();
+
+
+phys_objs.push(ellipse);
 phys_objs.push(circle);
-//phys_objs.push(circle2);
-
-//var ellipse = new Ellipse(2,1,pos2,10,mat)
-//ellipse.speed = speed;
-//ellipse.acc =acc2;
-
-//phys_objs.push(ellipse);
 phys_objs.push(floor);
 
 gravity.on(phys_objs,-10); //turn gravity on !
@@ -97,9 +93,28 @@ frame();
 
 //Testing functions:
 
-
 </script>
 
 </body>  
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
