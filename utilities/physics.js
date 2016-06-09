@@ -9,7 +9,7 @@ var ptsweights_circ = [1, 0.70710678118, 1, 0.70710678118, 1, 0.70710678118,1,0.
 //memory variables
 var isGravityOn = false;
 var correction_constant = 0.5
-var threshold_constant = 3;
+var threshold_constant = 3; 
 
 
 var Material = function(e,mue){
